@@ -3,3 +3,5 @@ roms/*
 saves/*
 !saves/.gitkeep
 romm/
+__pycache__/
+*.pyc
