@@ -183,6 +183,18 @@
     }
   });
 
+  // The MAME cabinet runs in a sibling container on the same host. "auto" (or a
+  // bare ":8089") is resolved against whatever hostname the browser used, so the
+  // stack needs no host-specific configuration to work across a LAN.
+  function resolveCabinetUrl(value) {
+    if (!value) return "";
+    var v = String(value).trim();
+    if (!v) return "";
+    if (v.charAt(0) === ":") return window.location.protocol + "//" + window.location.hostname + v;
+    if (v.toLowerCase() === "auto") return window.location.protocol + "//" + window.location.hostname + ":8089";
+    return v;
+  }
+
   function loadManifest() {
   return fetch("games.json", { cache: "no-store" })
     .then(function (r) { return r.json(); })
@@ -191,8 +203,9 @@
       state.threads = data.threads || 4;
       if (data.name) el.name.textContent = data.name.toUpperCase();
       if (data.tagline) el.tagline.textContent = data.tagline.toUpperCase();
-      if (data.mame_url) {
-        el.cabinet.href = data.mame_url;
+      var mame = resolveCabinetUrl(data.mame_url);
+      if (mame) {
+        el.cabinet.href = mame;
         el.cabinet.hidden = false;
       }
       state.uploads = !!data.uploads;

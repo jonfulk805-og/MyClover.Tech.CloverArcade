@@ -45,22 +45,49 @@ mame/root/...           autostart + clover-mame launcher (writes mame.ini on fir
 
 ## 3. Run it
 
+Pick one. All three need zero host-side setup -- no folders to create, no
+permissions to fix, no LAN IP to look up. The container builds its own ROM
+folder skeleton on first boot, and the `MAME CABINET` button resolves itself
+against whatever hostname your browser used.
+
+**a) Portainer (or any Docker host), straight from this repo**
+
+*Stacks -> Add stack -> Repository*
+
+| Field | Value |
+|---|---|
+| Repository URL | `https://github.com/jonfulk805-og/MyClover.Tech.CloverArcade` |
+| Reference | `refs/heads/main` |
+| Compose path | `docker-compose.portainer.yml` |
+
+Deploy. ROMs and saves live in Docker named volumes the stack creates itself.
+
+**b) Pull published images -- no build, no source**
+
+```bash
+docker compose -f docker-compose.ghcr.yml up -d
+```
+
+Or paste that file into Portainer's *Web editor* and deploy. The images are
+built and published by GitHub Actions on every version tag -- the workflow ships
+as `deploy/github-workflow-publish.yml`, move it to
+`.github/workflows/publish.yml` once to activate it; make the packages public once after the
+first run and it is a plain `docker pull` forever after.
+
+**c) Local clone, with bind mounts for poking at files directly**
+
 ```bash
 cd cloverarcade
-mkdir -p roms/nes roms/snes roms/genesis roms/gba roms/arcade
-docker compose up -d --build
-# open http://localhost:8088
+docker compose up -d --build                    # arcade only
+docker compose --profile mame up -d --build     # + native MAME cabinet
 ```
 
-**Add the native MAME cabinet (optional):**
+Then: arcade on **:8088**, MAME cabinet on **:8089** (https on 8443 -- needed for
+the gamepad API).
 
-```bash
-docker compose --profile mame up -d --build
-# cabinet at http://localhost:8089  (https on 8443 -- needed for the gamepad API)
-```
-
-The `MAME CABINET` button appears in the CloverArcade header whenever
-`MAME_CABINET_URL` is set. Set it to your LAN IP if you play from other devices.
+**Getting games in.** Either set `UPLOAD_TOKEN` and use the **ADD ROMS** button
+in the UI (section 4), or write into the volume directly -- Portainer's volume
+browser, an SMB/SFTP share, or `docker cp`. Only add games you legally own.
 
 **ROM layout -- the folder name selects the emulator core:**
 
@@ -83,7 +110,9 @@ coleco, c64, amiga, dos, 3do, arcade/mame/neogeo/cps1-3. Add your own by
 editing that one `case` block.
 
 Env vars: `ARCADE_NAME`, `ARCADE_TAGLINE`, `ARCADE_THREADS`,
-`ROM_RESCAN_SECONDS` (0 = scan at boot only).
+`ROM_RESCAN_SECONDS` (0 = scan at boot only), `MAME_CABINET_URL`
+(`auto` = same host on :8089, `":9000"` = same host on a custom port, or a full
+URL to override).
 
 ## 4. Uploading ROMs from the browser
 

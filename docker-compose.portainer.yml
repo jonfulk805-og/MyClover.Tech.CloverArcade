@@ -1,41 +1,46 @@
-# CloverArcade -- Portainer-friendly stack file.
+# CloverArcade -- zero-setup Portainer stack.
 #
-# Differences from docker-compose.yml:
-#   * no "profiles:" -- Portainer's stack editor does not honour compose profiles,
-#     so the MAME cabinet is always deployed. Delete that service if you don't want it.
-#   * absolute host paths -- relative "./roms" would land inside Portainer's own
-#     stack directory, which is easy to lose track of. Uploaded ROMs live in
-#     ${CLOVER_DATA} instead.
-#   * ${VARIABLES} -- set these in Portainer's "Environment variables" box.
+# Nothing to create on the host. No mkdir, no chown, no LAN IP to look up.
+# ROMs, saves and MAME config live in Docker-managed named volumes that the
+# containers create and populate themselves on first boot.
 #
-# Deploy: Stacks -> Add stack -> Repository
+# Deploy:  Stacks -> Add stack -> Repository
 #   URL           https://github.com/jonfulk805-og/MyClover.Tech.CloverArcade
 #   Reference     refs/heads/main
 #   Compose path  docker-compose.portainer.yml
 #
-# On the Docker host, first:  sudo mkdir -p /opt/cloverarcade/roms/arcade /opt/cloverarcade/saves/mame
-#                             sudo chown -R 1000:1000 /opt/cloverarcade
+# The only setting worth touching is UPLOAD_TOKEN (below): set it to any long
+# random string to switch on the ADD ROMS button, then add games from a browser.
+# Leave it blank for a read-only arcade.
+#
+# Arcade:       http://<host>:8088
+# MAME cabinet: http://<host>:8089
+#
+# Note: this file has no "profiles:" key, because Portainer's stack editor does
+# not honour compose profiles. If you don't want the native MAME cabinet,
+# delete the clovermame service before deploying.
 
 services:
   cloverarcade:
     build: .
-    image: myclovertech/cloverarcade:0.3.0
+    image: myclovertech/cloverarcade:0.3.1
     container_name: cloverarcade
     ports:
       - "8088:80"
     volumes:
-      - ${CLOVER_DATA:-/opt/cloverarcade}/roms:/roms
-      - ${CLOVER_DATA:-/opt/cloverarcade}/saves:/saves
+      - cloverarcade_roms:/roms
+      - cloverarcade_saves:/saves
     environment:
       ARCADE_NAME: "CloverArcade"
       ARCADE_TAGLINE: "Insert Coin"
       ARCADE_THREADS: "4"
       ROM_RESCAN_SECONDS: "60"
-      # Use the Docker host's LAN IP here, not localhost -- you are browsing
-      # from another machine, so "localhost" would mean your own laptop.
-      MAME_CABINET_URL: "http://${CLOVER_HOST:-localhost}:8089"
-      # Blank = read-only arcade. Set a long random string to enable uploads.
-      UPLOAD_TOKEN: "${UPLOAD_TOKEN:-}"
+      # "auto" = the MAME cabinet on this same host, port 8089, resolved against
+      # whatever hostname your browser used. No host IP needed.
+      MAME_CABINET_URL: "auto"
+      # Blank = no write endpoint exists at all. Set a long random string to
+      # enable in-browser ROM uploads.
+      UPLOAD_TOKEN: ""
       UPLOAD_MAX_BYTES: "8589934592"
     restart: unless-stopped
     healthcheck:
@@ -46,21 +51,28 @@ services:
 
   clovermame:
     build: ./mame
-    image: myclovertech/cloverarcade-mame:0.3.0
+    image: myclovertech/cloverarcade-mame:0.3.1
     container_name: clovermame
     ports:
       - "8089:3000"
       - "8443:3001"
     volumes:
-      - ${CLOVER_DATA:-/opt/cloverarcade}/roms/arcade:/roms/arcade:ro
-      - ${CLOVER_DATA:-/opt/cloverarcade}/saves/mame:/config
+      # Same ROM volume as the web arcade: anything uploaded to the arcade
+      # folder is instantly visible to native MAME.
+      - cloverarcade_roms:/roms:ro
+      - clovermame_config:/config
     environment:
       PUID: "1000"
       PGID: "1000"
-      TZ: "${TZ:-America/Los_Angeles}"
+      TZ: "America/Los_Angeles"
       TITLE: "CloverArcade Cabinet"
       MAME_ROM_PATH: "/roms/arcade"
       MAME_GAME: ""
       MAME_EXTRA_ARGS: ""
     shm_size: "1gb"
     restart: unless-stopped
+
+volumes:
+  cloverarcade_roms:
+  cloverarcade_saves:
+  clovermame_config:

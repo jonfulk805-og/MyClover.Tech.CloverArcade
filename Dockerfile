@@ -34,6 +34,7 @@ EXPOSE 80
 ENV ARCADE_NAME="CloverArcade" \
     ARCADE_TAGLINE="Insert Coin" \
     ARCADE_THREADS="4" \
+    MAME_CABINET_URL="auto" \
     UPLOAD_TOKEN="" \
     UPLOAD_MAX_BYTES="8589934592"
 

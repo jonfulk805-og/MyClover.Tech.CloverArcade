@@ -1,0 +1,60 @@
+# CloverArcade -- pull-only stack. No build step, no source checkout.
+#
+# Use this once the images are published (GitHub Actions does that on every
+# version tag). In Portainer you can paste this straight into
+#   Stacks -> Add stack -> Web editor
+# and hit deploy -- it only pulls.
+#
+# Or from a shell:  docker compose -f docker-compose.ghcr.yml up -d
+#
+# Arcade:       http://<host>:8088
+# MAME cabinet: http://<host>:8089
+
+services:
+  cloverarcade:
+    image: ghcr.io/jonfulk805-og/cloverarcade:latest
+    container_name: cloverarcade
+    ports:
+      - "8088:80"
+    volumes:
+      - cloverarcade_roms:/roms
+      - cloverarcade_saves:/saves
+    environment:
+      ARCADE_NAME: "CloverArcade"
+      ARCADE_TAGLINE: "Insert Coin"
+      ARCADE_THREADS: "4"
+      ROM_RESCAN_SECONDS: "60"
+      MAME_CABINET_URL: "auto"
+      UPLOAD_TOKEN: ""              # set a long random string to enable uploads
+      UPLOAD_MAX_BYTES: "8589934592"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  clovermame:
+    image: ghcr.io/jonfulk805-og/cloverarcade-mame:latest
+    container_name: clovermame
+    ports:
+      - "8089:3000"
+      - "8443:3001"
+    volumes:
+      - cloverarcade_roms:/roms:ro
+      - clovermame_config:/config
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "America/Los_Angeles"
+      TITLE: "CloverArcade Cabinet"
+      MAME_ROM_PATH: "/roms/arcade"
+      MAME_GAME: ""
+      MAME_EXTRA_ARGS: ""
+    shm_size: "1gb"
+    restart: unless-stopped
+
+volumes:
+  cloverarcade_roms:
+  cloverarcade_saves:
+  clovermame_config:

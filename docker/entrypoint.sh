@@ -7,6 +7,29 @@ ROM_DIR="/roms"
 OUT="${HTML_DIR}/games.json"
 RESCAN_FLAG="/tmp/cloverarcade.rescan"
 
+# The image owns its data layout: create the folder skeleton on every start so a
+# bare/empty volume (or a fresh Portainer deploy) needs zero host-side setup.
+seed_rom_dirs() {
+  local d
+  for d in arcade nes snes n64 gb gba genesis psx dos bios; do
+    mkdir -p "${ROM_DIR}/${d}" 2>/dev/null || true
+  done
+  mkdir -p "${ROM_DIR}/bios" /saves 2>/dev/null || true
+  if [ ! -f "${ROM_DIR}/README.txt" ]; then
+    cat > "${ROM_DIR}/README.txt" <<'EOT' 2>/dev/null || true
+CloverArcade ROM volume.
+
+One folder per system, e.g.  snes/YourGame.sfc  --  arcade/yourgame.zip
+Cover art is optional:       snes/boxart/YourGame.png
+Console BIOS files go in:    bios/     (never shown as a game)
+
+You can also add games from the web UI: set UPLOAD_TOKEN, then use ADD ROMS.
+Only add games you legally own.
+EOT
+  fi
+}
+seed_rom_dirs
+
 # system directory name -> EmulatorJS/libretro core
 core_for_system() {
   case "$1" in
