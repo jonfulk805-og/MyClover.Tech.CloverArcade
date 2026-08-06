@@ -13,6 +13,7 @@ excellent open-source work. It contains no ROMs and no BIOS files.
 | KasmVNC baseimage | LinuxServer.io | GPL-3.0 | https://github.com/linuxserver/docker-baseimage-kasmvnc |
 | nginx | Nginx Inc. / F5 | BSD-2-Clause | https://nginx.org/ |
 | RomM (optional service) | RomM contributors | AGPL-3.0 | https://github.com/rommapp/romm |
+| libretro thumbnail archive | libretro community contributors | see repo terms | https://github.com/libretro-thumbnails |
 | jq | Stephen Dolan + contributors | MIT | https://jqlang.github.io/jq/ |
 
 CloverArcade's own code (Dockerfiles, scanner, UI) is released under

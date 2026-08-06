@@ -5,6 +5,7 @@ set -euo pipefail
 HTML_DIR="/usr/share/nginx/html"
 ROM_DIR="/roms"
 OUT="${HTML_DIR}/games.json"
+RESCAN_FLAG="/tmp/cloverarcade.rescan"
 
 # system directory name -> EmulatorJS/libretro core
 core_for_system() {
@@ -62,6 +63,7 @@ build_manifest() {
       system="${rel%%/*}"
       [ "$system" = "$rel" ] && continue                 # loose file at /roms root -> skip
       case "$rel" in */boxart/*|*/media/*) continue ;; esac
+      [ "$system" = "bios" ] && continue                 # BIOS files are not games
       base="$(basename "$rom")"
       case "$base" in README*|readme*|*.md.txt) continue ;; esac
       # note: .md = Sega Mega Drive ROM, so it is NOT treated as markdown
@@ -95,7 +97,8 @@ build_manifest() {
      --arg built "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
      --argjson threads "${ARCADE_THREADS:-4}" \
      --arg mame "${MAME_CABINET_URL:-}" \
-     '{name:$name, tagline:$tag, generated:$built, threads:$threads, mame_url:$mame, games:(sort_by(.system, .title))}' \
+     --argjson uploads "$( [ -n "${UPLOAD_TOKEN:-}" ] && echo true || echo false )" \
+     '{name:$name, tagline:$tag, generated:$built, threads:$threads, mame_url:$mame, uploads:$uploads, games:(sort_by(.system, .title))}' \
      "$tmp" > "$OUT"
   rm -f "$tmp"
 
@@ -104,7 +107,20 @@ build_manifest() {
 
 build_manifest
 
-# optional: rescan every ROM_RESCAN_SECONDS (0 = off)
+# upload service (Python, stdlib only). It refuses writes unless UPLOAD_TOKEN is set.
+if [ -x /usr/local/bin/uploader.py ]; then
+  ROM_DIR="$ROM_DIR" RESCAN_FLAG="$RESCAN_FLAG" python3 /usr/local/bin/uploader.py &
+fi
+
+# fast rescan: the upload service drops a flag file, we pick it up within ~2s
+( while sleep 2; do
+    if [ -f "$RESCAN_FLAG" ]; then
+      rm -f "$RESCAN_FLAG"
+      build_manifest || echo "[WARN] triggered rescan failed"
+    fi
+  done ) &
+
+# optional: periodic rescan for files added straight to the volume (0 = off)
 if [ "${ROM_RESCAN_SECONDS:-0}" -gt 0 ] 2>/dev/null; then
   ( while sleep "${ROM_RESCAN_SECONDS}"; do build_manifest || echo "[WARN] rescan failed"; done ) &
 fi

@@ -40,7 +40,9 @@
   gba/         ...
   arcade/      mygame.zip
   nes/boxart/  Super Clover Bros.png   &lt;- optional cover art</pre>
-    <p>Then restart the container (or set <code>ROM_RESCAN_SECONDS=60</code>) to re-scan.</p>
+    <p>Or just hit <strong>ADD ROMS</strong> up top and drag files straight in &mdash; set
+    <code>UPLOAD_TOKEN</code> in <code>docker-compose.yml</code> to switch that on.
+    New files appear within a few seconds, no restart needed.</p>
   </section>
 </main>
 
@@ -49,7 +51,8 @@
   <span>Powered by the open-source heroes:
     <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" rel="noopener">EmulatorJS</a>,
     <a href="https://www.libretro.com/" target="_blank" rel="noopener">libretro / RetroArch</a>,
-    <a href="https://www.mamedev.org/" target="_blank" rel="noopener">MAME</a>. Thank you.
+    <a href="https://www.mamedev.org/" target="_blank" rel="noopener">MAME</a>,
+    <a href="https://thumbnails.libretro.com/" target="_blank" rel="noopener">libretro thumbnails</a>. Thank you.
   </span>
 </footer>
 
@@ -62,6 +65,7 @@
   <div id="game-shell" class="game-shell"><div id="game"></div></div>
 </div>
 
+<script src="assets/upload.js"></script>
 <script src="assets/arcade.js"></script>
 </body>
 </html>

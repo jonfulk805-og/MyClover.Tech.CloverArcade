@@ -85,7 +85,36 @@ editing that one `case` block.
 Env vars: `ARCADE_NAME`, `ARCADE_TAGLINE`, `ARCADE_THREADS`,
 `ROM_RESCAN_SECONDS` (0 = scan at boot only).
 
-## 4. Two engines, one arcade
+## 4. Uploading ROMs from the browser
+
+Uploads are **off until you set a token** -- an arcade with no token has no write
+endpoint at all. In `docker-compose.yml`:
+
+```yaml
+UPLOAD_TOKEN: "paste-a-long-random-string-here"
+```
+
+Then **ADD ROMS** appears in the header. Paste the token once (kept in your
+browser), pick the system, drag files in. Notes:
+
+- streamed straight to disk with a real progress bar -- a 4 GB PS1 image is fine
+- `.zip` is fine, EmulatorJS reads it; no need to extract
+- `UPLOAD_MAX_BYTES` caps per-file size (default 8 GiB)
+- filenames are sanitised and executables (`.exe`, `.sh`, `.js`, ...) are refused
+- new games appear within ~2 seconds -- no restart, no rescan wait
+- `roms/bios/` is scanned for nothing; put BIOS files there and they stay out of
+  the game grid
+
+### Auto-fetch box art
+
+Hit **AUTO-FETCH BOX ART** and CloverArcade matches every cover-less game in the
+selected system against the [libretro thumbnail archive](https://thumbnails.libretro.com/)
+and downloads the art into `roms/<system>/boxart/`. Matching normalises names and
+prefers clean USA/World retail scans over hacks, betas and samples. Anything it
+can't match is listed so you can drop a cover in by hand. Thank you to the
+libretro community for maintaining that archive.
+
+## 5. Two engines, one arcade
 
 | | Browser engine (EmulatorJS) | MAME cabinet sidecar |
 |---|---|---|
@@ -99,7 +128,7 @@ MAME state (cfg, nvram, save states, high scores) persists in `./saves/mame`.
 Set `MAME_GAME=mslug` to boot straight into a romset, otherwise you land in
 MAME's own game-selector UI. `MAME_EXTRA_ARGS` passes flags straight through.
 
-## 5. Notes and limits
+## 6. Notes and limits
 
 - **BIOS files**: PSX, Saturn, PSP, NDS and some others need BIOS. Drop the file
   next to the ROM and EmulatorJS will pick it up, or set `EJS_biosUrl` per-system.
@@ -114,10 +143,16 @@ MAME's own game-selector UI. `MAME_EXTRA_ARGS` passes flags straight through.
   homebrew/public-domain sets. If CloverArcade ever becomes a paid CloverStack
   product, GPL-3.0 obligations from EmulatorJS apply -- ship source/attribution.
 
-## 6. Verification status
+## 7. Verification status
 
 - ROM scanner + manifest generation: **tested locally** with a fake multi-system
   ROM tree; correct core mapping, JSON, and `mame_url` passthrough.
+- Upload API: **12 cases tested** including happy path, box art, blocked
+  extensions, unknown system, path traversal, oversize, wrong token, delete,
+  delete traversal, and the disabled-by-default state. Upload -> rescan ->
+  manifest was verified end to end.
+- Box-art fetcher: **tested live** against the real libretro archive (SNES + NES);
+  correct covers downloaded, unmatched titles reported.
 - Front-end: **rendered and visually checked** with a 10-game mock manifest.
 - Shell scripts: syntax-checked (`bash -n`).
 - `docker build` and live emulation: **not executed here** (no Docker daemon in
@@ -125,15 +160,14 @@ MAME's own game-selector UI. `MAME_EXTRA_ARGS` passes flags straight through.
   the MAME sidecar: Debian's `mame` package version is whatever bookworm ships,
   so check `mame -help | head -1` after first boot and match your romset.
 
-## 7. Next moves (optional)
+## 8. Next moves (optional)
 
-1. Enable the RomM service in `docker-compose.yml` to auto-scrape box art, then
-   copy covers into `roms/<system>/boxart/`.
-2. Per-game deep links into the MAME cabinet (small launch API in the sidecar).
+1. Per-game deep links into the MAME cabinet (small launch API in the sidecar).
+2. Server-side save sync so progress follows you between devices.
 3. Gate it behind CloverVault/auth and publish as a CloverStack product tier.
 4. Bolt on server-side save sync using the `/saves` volume.
 
-## 8. License and attribution
+## 9. License and attribution
 
 CloverArcade's own code is **GPL-3.0-or-later** (`LICENSE`) for compatibility
 with EmulatorJS. Full per-component credits in [`NOTICE.md`](NOTICE.md).

@@ -2,7 +2,7 @@
 (function () {
   "use strict";
 
-  var state = { games: [], system: "ALL", query: "", threads: 4 };
+  var state = { games: [], system: "ALL", query: "", threads: 4, uploads: false };
 
   var el = {
     grid: document.getElementById("grid"),
@@ -183,7 +183,8 @@
     }
   });
 
-  fetch("games.json", { cache: "no-store" })
+  function loadManifest() {
+  return fetch("games.json", { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (data) {
       state.games = data.games || [];
@@ -194,6 +195,8 @@
         el.cabinet.href = data.mame_url;
         el.cabinet.hidden = false;
       }
+      state.uploads = !!data.uploads;
+      if (window.CloverUpload) window.CloverUpload.setEnabled(state.uploads);
       el.count.textContent = state.games.length;
       document.title = (data.name || "CloverArcade");
       renderChips();
@@ -204,4 +207,8 @@
       el.empty.hidden = false;
       el.grid.hidden = true;
     });
+  }
+
+  window.CloverArcade = { reload: loadManifest };
+  loadManifest();
 })();

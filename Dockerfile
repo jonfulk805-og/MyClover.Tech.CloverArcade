@@ -18,21 +18,24 @@ LABEL org.opencontainers.image.title="CloverArcade" \
       org.opencontainers.image.description="Self-hosted arcade-style web front-end for open-source emulators (EmulatorJS / libretro)" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
 
-RUN apk add --no-cache jq bash tini
+RUN apk add --no-cache jq bash tini python3
 
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/uploader.py /usr/local/bin/uploader.py
 COPY ui/ /usr/share/nginx/html/
 COPY --from=fetch /out/emulatorjs/ /usr/share/nginx/html/emulatorjs/
 
-RUN chmod +x /usr/local/bin/entrypoint.sh \
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/uploader.py \
  && mkdir -p /roms /saves
 
 VOLUME ["/roms", "/saves"]
 EXPOSE 80
 ENV ARCADE_NAME="CloverArcade" \
     ARCADE_TAGLINE="Insert Coin" \
-    ARCADE_THREADS="4"
+    ARCADE_THREADS="4" \
+    UPLOAD_TOKEN="" \
+    UPLOAD_MAX_BYTES="8589934592"
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]

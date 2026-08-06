@@ -1,12 +1,12 @@
 services:
   cloverarcade:
     build: .
-    image: myclovertech/cloverarcade:0.2.0
+    image: myclovertech/cloverarcade:0.3.0
     container_name: cloverarcade
     ports:
       - "8088:80"
     volumes:
-      - ./roms:/roms:ro          # your legally owned ROMs, one folder per system
+      - ./roms:/roms             # rw so in-browser uploads can land here
       - ./saves:/saves           # reserved for future server-side save sync
     environment:
       ARCADE_NAME: "CloverArcade"
@@ -16,6 +16,10 @@ services:
       # Shows the "MAME CABINET" button in the UI. Point it at the sidecar below.
       # Use your LAN IP/hostname if you play from other devices.
       MAME_CABINET_URL: "http://localhost:8089"
+      # ROM UPLOADS: blank = read-only arcade (no write endpoint at all).
+      # Set a long random string to enable the UPLOAD button in the UI.
+      UPLOAD_TOKEN: ""
+      UPLOAD_MAX_BYTES: "8589934592"   # 8 GiB per file
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
@@ -28,7 +32,7 @@ services:
   # Opt-in:  docker compose --profile mame up -d --build
   clovermame:
     build: ./mame
-    image: myclovertech/cloverarcade-mame:0.2.0
+    image: myclovertech/cloverarcade-mame:0.3.0
     container_name: clovermame
     profiles: ["mame"]
     ports:
