@@ -1,0 +1,60 @@
+services:
+  cloverarcade:
+    build: .
+    image: myclovertech/cloverarcade:0.2.0
+    container_name: cloverarcade
+    ports:
+      - "8088:80"
+    volumes:
+      - ./roms:/roms:ro          # your legally owned ROMs, one folder per system
+      - ./saves:/saves           # reserved for future server-side save sync
+    environment:
+      ARCADE_NAME: "CloverArcade"
+      ARCADE_TAGLINE: "Insert Coin"
+      ARCADE_THREADS: "4"
+      ROM_RESCAN_SECONDS: "60"   # 0 = scan only at start
+      # Shows the "MAME CABINET" button in the UI. Point it at the sidecar below.
+      # Use your LAN IP/hostname if you play from other devices.
+      MAME_CABINET_URL: "http://localhost:8089"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Native MAME (GPL-2.0) streamed to the browser via KasmVNC.
+  # Covers modern/3D romsets the WASM cores cannot run.
+  # Opt-in:  docker compose --profile mame up -d --build
+  clovermame:
+    build: ./mame
+    image: myclovertech/cloverarcade-mame:0.2.0
+    container_name: clovermame
+    profiles: ["mame"]
+    ports:
+      - "8089:3000"              # http  (KasmVNC web client)
+      - "8443:3001"              # https (self-signed; needed for gamepad API)
+    volumes:
+      - ./roms/arcade:/roms/arcade:ro
+      - ./saves/mame:/config     # MAME cfg/nvram/save states persist here
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: "America/Los_Angeles"
+      TITLE: "CloverArcade Cabinet"
+      MAME_ROM_PATH: "/roms/arcade"
+      MAME_GAME: ""              # e.g. "mslug" to boot straight into a game
+      MAME_EXTRA_ARGS: ""        # e.g. "-nothrottle -autoframeskip"
+    shm_size: "1gb"
+    restart: unless-stopped
+
+  # OPTIONAL: RomM (AGPL-3.0) for library management, metadata scraping and box art.
+  # Point it at the same ROM folder; it writes cover art you can reuse.
+  # romm:
+  #   image: rommapp/romm:latest
+  #   ports: ["8090:8080"]
+  #   volumes:
+  #     - ./roms:/romm/library
+  #     - ./romm/resources:/romm/resources
+  #   environment:
+  #     ROMM_DB_DRIVER: sqlite

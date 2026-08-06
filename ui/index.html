@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CloverArcade</title>
+<link rel="icon" href="assets/logo.webp">
+<link rel="stylesheet" href="assets/arcade.css">
+</head>
+<body>
+<div class="scanlines" aria-hidden="true"></div>
+
+<header class="marquee">
+  <img class="marquee-logo" src="assets/logo.webp" alt="MyClover.Tech">
+  <div class="marquee-text">
+    <h1 id="arcade-name">CLOVERARCADE</h1>
+    <p id="arcade-tagline" class="blink">INSERT COIN</p>
+  </div>
+  <div class="credits">
+    <span class="credits-label">GAMES</span>
+    <span class="credits-count" id="game-count">--</span>
+  </div>
+</header>
+
+<nav class="controls">
+  <input id="search" type="search" placeholder="SEARCH CABINET..." autocomplete="off" spellcheck="false">
+  <div id="systems" class="systems"></div>
+  <a id="mame-cabinet" class="cabinet-btn" href="#" target="_blank" rel="noopener" hidden>&#9635; MAME CABINET</a>
+</nav>
+
+<main>
+  <section id="grid" class="grid" aria-live="polite"></section>
+  <section id="empty" class="empty" hidden>
+    <h2>NO CABINETS FOUND</h2>
+    <p>Drop your legally owned ROMs into the mounted <code>/roms</code> volume, in one folder per system:</p>
+    <pre>roms/
+  nes/         Super Clover Bros.nes
+  snes/        ...
+  genesis/     ...
+  gba/         ...
+  arcade/      mygame.zip
+  nes/boxart/  Super Clover Bros.png   &lt;- optional cover art</pre>
+    <p>Then restart the container (or set <code>ROM_RESCAN_SECONDS=60</code>) to re-scan.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <span>CloverArcade &mdash; part of the CloverStack, self-hosted &amp; yours.</span>
+  <span>Powered by the open-source heroes:
+    <a href="https://github.com/EmulatorJS/EmulatorJS" target="_blank" rel="noopener">EmulatorJS</a>,
+    <a href="https://www.libretro.com/" target="_blank" rel="noopener">libretro / RetroArch</a>,
+    <a href="https://www.mamedev.org/" target="_blank" rel="noopener">MAME</a>. Thank you.
+  </span>
+</footer>
+
+<div id="player" class="player" hidden>
+  <div class="player-bar">
+    <button id="exit" class="btn">&larr; EXIT TO ARCADE</button>
+    <span id="now-playing"></span>
+    <span class="hint">F = fullscreen &middot; ESC = menu</span>
+  </div>
+  <div id="game-shell" class="game-shell"><div id="game"></div></div>
+</div>
+
+<script src="assets/arcade.js"></script>
+</body>
+</html>

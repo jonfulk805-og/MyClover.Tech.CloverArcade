@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# LinuxServer KasmVNC baseimage runs this to start the containerised app.
+exec /usr/local/bin/clover-mame
