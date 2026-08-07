@@ -23,7 +23,7 @@
 services:
   cloverarcade:
     build: .
-    image: myclovertech/cloverarcade:0.3.1
+    image: myclovertech/cloverarcade:0.3.6
     container_name: cloverarcade
     ports:
       - "8088:80"
@@ -51,7 +51,7 @@ services:
 
   clovermame:
     build: ./mame
-    image: myclovertech/cloverarcade-mame:0.3.1
+    image: myclovertech/cloverarcade-mame:0.3.6
     container_name: clovermame
     ports:
       - "8089:3000"

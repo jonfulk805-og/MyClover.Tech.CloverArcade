@@ -1,14 +1,16 @@
 # CloverArcade -- self-hosted arcade/console emulation front-end
 # Stage 1: fetch EmulatorJS (GPL-3.0, https://github.com/EmulatorJS/EmulatorJS)
 FROM alpine:3.20 AS fetch
-ARG EMULATORJS_VERSION=4.2.1
-RUN apk add --no-cache curl unzip
+ARG EMULATORJS_VERSION=4.2.3
+# Upstream ships releases as .7z (not .zip) -- p7zip is required.
+RUN apk add --no-cache curl p7zip
 WORKDIR /src
-RUN curl -fsSL -o ejs.zip \
-      "https://github.com/EmulatorJS/EmulatorJS/releases/download/v${EMULATORJS_VERSION}/${EMULATORJS_VERSION}.zip" \
+RUN curl -fsSL -o ejs.7z \
+      "https://github.com/EmulatorJS/EmulatorJS/releases/download/v${EMULATORJS_VERSION}/${EMULATORJS_VERSION}.7z" \
  && mkdir -p /out/emulatorjs \
- && unzip -q ejs.zip -d /out/emulatorjs \
- && rm ejs.zip \
+ && 7z x -y ejs.7z -o/out/emulatorjs > /dev/null \
+ && rm ejs.7z \
+ && test -f /out/emulatorjs/data/loader.js \
  && ls /out/emulatorjs
 
 # Stage 2: runtime
