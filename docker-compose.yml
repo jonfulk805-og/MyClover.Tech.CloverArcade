@@ -1,7 +1,7 @@
 services:
   cloverarcade:
     build: .
-    image: myclovertech/cloverarcade:0.3.6
+    image: myclovertech/cloverarcade:0.3.7
     container_name: cloverarcade
     ports:
       - "8088:80"
@@ -32,7 +32,7 @@ services:
   # Opt-in:  docker compose --profile mame up -d --build
   clovermame:
     build: ./mame
-    image: myclovertech/cloverarcade-mame:0.3.6
+    image: myclovertech/cloverarcade-mame:0.3.7
     container_name: clovermame
     profiles: ["mame"]
     ports:
