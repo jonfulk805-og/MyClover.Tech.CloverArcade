@@ -32,14 +32,11 @@
   }
   #touch {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 38vh;
-    display: none;
+    inset: 0;
     pointer-events: none;
   }
   #stick {
+    display: none;
     pointer-events: auto;
     position: absolute;
     left: max(18px, env(safe-area-inset-left));
@@ -78,7 +75,7 @@
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   }
   @media (pointer: coarse), (max-width: 820px) {
-    #touch { display: block; }
+    #stick { display: block; }
   }
 </style>
 </head>

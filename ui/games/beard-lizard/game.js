@@ -1472,13 +1472,16 @@
 
   window.addEventListener("keydown", function (e) {
     var key = e.key.toLowerCase();
+    if (key === "space") key = " ";
     if (key === "arrowup" || key === "arrowdown" || key === "arrowleft" || key === "arrowright" || key === " ") e.preventDefault();
     var first = !keys[key];
     keys[key] = true;
     if (first) onAction(key);
   });
   window.addEventListener("keyup", function (e) {
-    keys[e.key.toLowerCase()] = false;
+    var key = e.key.toLowerCase();
+    if (key === "space") key = " ";
+    keys[key] = false;
   });
   window.addEventListener("blur", function () {
     keys = {};
