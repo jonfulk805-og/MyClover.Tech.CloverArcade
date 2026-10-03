@@ -627,15 +627,15 @@
     var awayx = b.x - player.x;
     var awayy = b.y - player.y;
     var ad = Math.hypot(awayx, awayy) || 1;
-    var flee = ad < 72 ? (1 - ad / 72) : 0;
+    var flee = ad < 46 ? (1 - ad / 46) : 0;
     var sp;
     var max;
     var wx;
     var wy;
     if (b.kind === "cricket") {
-      b.hopping = (b.age % 1.05) < 0.16;
-      sp = b.hopping ? 78 : 16;
-      max = 78;
+      b.hopping = (b.age % 1.15) < 0.14;
+      sp = b.hopping ? 60 : 14;
+      max = 60;
       wx = Math.cos(b.ang) * sp;
       wy = Math.sin(b.ang) * sp;
     } else if (b.kind === "beetle") {
@@ -859,7 +859,7 @@
     updatePlayer(dt);
     for (var i = bugs.length - 1; i >= 0; i--) {
       updateBug(bugs[i], dt);
-      if (Math.hypot(bugs[i].x - player.x, bugs[i].y - player.y) < player.r + bugs[i].r + 3) eatBug(bugs[i], i);
+      if (Math.hypot(bugs[i].x - player.x, bugs[i].y - player.y) < 22) eatBug(bugs[i], i);
     }
     snakes.forEach(function (s) { updateSnake(s, dt); });
     cats.forEach(function (c) { updateCat(c, dt); });
