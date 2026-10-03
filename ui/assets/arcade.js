@@ -4,6 +4,24 @@
 
   var state = { games: [], system: "ALL", query: "", threads: 4, uploads: false };
 
+  var BUILT_INS = [
+    {
+      title: "Beard Lizard",
+      system: "clover",
+      kind: "html5",
+      core: "html5",
+      path: "games/beard-lizard/index.html",
+      art: "games/beard-lizard/boxart.svg",
+      size: 0
+    }
+  ];
+
+  function withBuiltIns(games) {
+    var seen = {};
+    games.forEach(function (g) { seen[g.path] = true; });
+    return BUILT_INS.filter(function (g) { return !seen[g.path]; }).concat(games);
+  }
+
   var el = {
     grid: document.getElementById("grid"),
     empty: document.getElementById("empty"),
@@ -24,7 +42,7 @@
     gba: "GBA", nds: "DS", genesis: "Genesis", megadrive: "Mega Drive", sms: "Master System",
     gg: "Game Gear", saturn: "Saturn", psx: "PlayStation", psp: "PSP", arcade: "Arcade",
     mame: "MAME", neogeo: "Neo Geo", pce: "PC Engine", atari2600: "Atari 2600", dos: "DOS",
-    c64: "C64", amiga: "Amiga"
+    c64: "C64", amiga: "Amiga", clover: "Clover"
   };
 
   function label(sys) {
@@ -105,7 +123,7 @@
     s.textContent = label(g.system);
     var z = document.createElement("span");
     z.className = "cab-size";
-    z.textContent = humanSize(g.size);
+    z.textContent = g.kind === "html5" ? "BUILT-IN" : humanSize(g.size);
     s.appendChild(z);
     meta.appendChild(t);
     meta.appendChild(s);
@@ -135,7 +153,10 @@
 
   /* ---------- EmulatorJS boot ---------- */
   function launch(g) {
+    if (g.kind === "html5") return launchHtml(g);
     el.nowPlaying.textContent = g.title + "  [" + label(g.system) + "]";
+    var hint = document.getElementById("player-hint");
+    if (hint) hint.textContent = "F = fullscreen  ·  ESC = menu";
     el.player.hidden = false;
     document.body.style.overflow = "hidden";
 
@@ -164,6 +185,22 @@
     };
     document.body.appendChild(s);
     window.__ejsScript = s;
+  }
+
+  function launchHtml(g) {
+    el.nowPlaying.textContent = g.title + "  [" + label(g.system) + "]";
+    var hint = document.getElementById("player-hint");
+    if (hint) hint.textContent = "ARROWS / WASD MOVE  ·  SPACE BEARD";
+    el.player.hidden = false;
+    document.body.style.overflow = "hidden";
+    el.game.innerHTML = "";
+    var frame = document.createElement("iframe");
+    frame.className = "html5-frame";
+    frame.src = encodeURI(g.path);
+    frame.title = g.title;
+    frame.setAttribute("allow", "autoplay; fullscreen");
+    frame.addEventListener("load", function () { frame.focus(); });
+    el.game.appendChild(frame);
   }
 
   function exitGame() {
@@ -199,7 +236,7 @@
   return fetch("games.json", { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      state.games = data.games || [];
+      state.games = withBuiltIns(data.games || []);
       state.threads = data.threads || 4;
       if (data.name) el.name.textContent = data.name.toUpperCase();
       if (data.tagline) el.tagline.textContent = data.tagline.toUpperCase();
@@ -216,9 +253,12 @@
       renderGrid();
     })
     .catch(function () {
-      el.count.textContent = "0";
-      el.empty.hidden = false;
-      el.grid.hidden = true;
+      state.games = withBuiltIns([]);
+      el.count.textContent = String(state.games.length);
+      el.empty.hidden = state.games.length !== 0;
+      el.grid.hidden = state.games.length === 0;
+      renderChips();
+      renderGrid();
     });
   }
 
